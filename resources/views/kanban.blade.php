@@ -15,7 +15,17 @@
 
     <main class="grid gap-6 grid-cols-1 md:grid-cols-3" x-data="{
       sorted: function(event){
-        console.log(event);
+        const fromTasks = event.from.querySelectorAll('article');
+        const noTaskElement = event.to.querySelector('#no-task');
+
+        if(fromTasks.length <= 0){
+          event.from.innerHTML = `<article class='block text-center' id='no-task'>Nenhuma tarefa</article>`
+        }
+
+        if(noTaskElement){
+          noTaskElement.remove();
+        }
+        console.log(event.from);
       }
     }">
       <!-- Coluna Peparando -->
@@ -24,7 +34,7 @@
           <h2 class="text-lg font-semibold bg-red-400 rounded text-white text-center">🔴Preparando</h2>
         </header>
         <div class="flex-1 overflow-y-auto p-4 space-y-4" x-sort x-sort:group="kanban" @end="sorted">
-          @forelse ($tasks[1] as $task)
+          @forelse ($tasks[1] ?? [] as $task)
             <article class="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer" x-sort:item="{{ $task->position_id }}">
             <h3 class="font-medium text-gray-800">{{ $task->title }}</h3>
             <p class="text-sm text-gray-500">
@@ -43,7 +53,7 @@
           <h2 class="text-lg font-semibold bg-orange-400 rounded text-white text-center">🟠Desenvolvendo</h2>
         </header>
           <div class="flex-1 overflow-y-auto p-4 space-y-4" x-sort x-sort:group="kanban" @end="sorted">
-           @forelse ($tasks[2] as $task)
+           @forelse ($tasks[2] ?? []  as $task)
             <article class="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer" x-sort:item="{{ $task->position_id }}">
             <h3 class="font-medium text-gray-800">{{ $task->title }}</h3>
             <p class="text-sm text-gray-500">
