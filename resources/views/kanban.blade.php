@@ -15,18 +15,38 @@
 
     <main class="grid gap-6 grid-cols-1 md:grid-cols-3" x-data="{
       cols:[],
-      createDataToUpdateKanban: function(tasks,columnName,columnId){
+      createDataToUpdateKanban: function(tasks,columnId){
+        this.cols[columnId] ??= {};
           tasks.forEach((task,key) => {
             let newPosition = key+1;
             task.setAttribute('x-sort:item', newPosition);
-            this.cols[columnName] ??= {};
-            this.cols[columnName][columnId] ??= [];
-            this.cols[columnName][columnId].push({
-              [task.dataset.id]:newPosition
-            })
+            this.cols[columnId][task.dataset.id] = newPosition
           })
       },
-      sorted: function(event){
+      updateKanban: async function(){
+        try{
+          const response = await fetch('{{ route('update.kanban') }}',{
+            method:'PUT',
+            headers:{
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            },
+            body:JSON.stringify({...this.cols})
+          })
+
+          if(!response.ok){
+            const error = await response.json();
+            throw new Error('Something went wrong: '+response.status);
+          }
+
+          console.log(response);
+        }catch(error){
+          console.log(error);
+        }finally {
+          this.cols = [];
+        }
+      },
+      sorted: async function(event){
         {{-- console.log(event); --}}
         const fromTasks = event.from.querySelectorAll('article');
         const toTasks = event.to.querySelectorAll('article');
@@ -42,30 +62,15 @@
           noTaskElement.remove();
         }
 
-        this.createDataToUpdateKanban(fromTasks,'from',columnIdFrom);
+        this.createDataToUpdateKanban(fromTasks,columnIdFrom);
 
         if(columnIdFrom !== columnIdTo){
-          this.createDataToUpdateKanban(toTasks,'to',columnIdTo);
+          this.createDataToUpdateKanban(toTasks,columnIdTo);
         }
 
         console.log(this.cols);
 
-        this.cols = [];
-
-         /*
-        [
-          'from': 2 => [
-            {
-              taskId: newPosition
-            }
-          ],
-          'to': 3 => [
-            {
-              taskId: newPosition
-            }
-          ]
-        ]
-        */
+        await this.updateKanban();
       }
     }">
       <!-- Coluna Peparando -->
